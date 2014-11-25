@@ -92,3 +92,20 @@ class CommentDAO extends DAO
         return $comment;
     }
 }
+/**
+ * Returns a list of all comments, sorted by id.
+ *
+ * @return array A list of all comments.
+ */
+public function findAll() {
+    $sql = "select * from t_comment order by com_id desc";
+    $result = $this->getDb()->fetchAll($sql);
+
+    // Convert query result to an array of Comment objects
+    $entities = array();
+    foreach ($result as $row) {
+        $id = $row['com_id'];
+        $entities[$id] = $this->buildDomainObject($row);
+    }
+    return $entities;
+}

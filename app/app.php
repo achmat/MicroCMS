@@ -11,6 +11,11 @@ $app->register(new Silex\Provider\DoctrineServiceProvider());
 $app->register(new Silex\Provider\TwigServiceProvider(), array(
     'twig.path' => __DIR__.'/../views',
 ));
+$app['twig'] = $app->share($app->extend('twig', function($twig, $app) {
+    $twig->addExtension(new Twig_Extensions_Extension_Text());
+    return $twig;
+}));
+$app->register(new Silex\Provider\ValidatorServiceProvider());
 
 $app->register(new Silex\Provider\SessionServiceProvider());
 $app->register(new Silex\Provider\UrlGeneratorServiceProvider());
@@ -30,8 +35,14 @@ $app->register(new Silex\Provider\SecurityServiceProvider(), array(
             }),
         ),
     ),
+    'security.role_hierarchy' => array(
+        'ROLE_ADMIN' => array('ROLE_USER'),
+    ),
+    'security.access_rules' => array(
+        array('^/admin', 'ROLE_ADMIN'),
+    ),
 ));
-            
+
 // Register services.
 $app['dao.article'] = $app->share(function ($app) {
     return new MicroCMS\DAO\ArticleDAO($app['db']);
@@ -45,7 +56,6 @@ $app['dao.comment'] = $app->share(function ($app) {
     $commentDAO->setUserDAO($app['dao.user']);
     return $commentDAO;
 });
-
 $app->register(new Silex\Provider\MonologServiceProvider(), array(
     'monolog.logfile' => $app['monolog.logfile'],
     'monolog.name' => 'MicroCMS',
@@ -57,3 +67,30 @@ if (isset($app['debug']) and $app['debug']) {
         'profiler.cache_dir' => __DIR__.'/../var/cache/profiler'
     ));
 }
+// Register error handler
+use Symfony\Component\HttpFoundation\Response;
+$app->error(function (\Exception $e, $code) use ($app) {
+    switch ($code) {
+        case 404:
+            $message = 'The requested resource could not be found.';
+            break;
+        default:
+            $message = "Something went wrong.";
+    }
+    return $app['twig']->render('error.html.twig', array('message' => $message));
+});
+// Register error handler
+use Symfony\Component\HttpFoundation\Response;
+$app->error(function (\Exception $e, $code) use ($app) {
+    switch ($code) {
+        case 403:
+            $message = 'Access denied.';
+            break;
+        case 404:
+            $message = 'The requested resource could not be found.';
+            break;
+        default:
+            $message = "Something went wrong.";
+    }
+    return $app['twig']->render('error.html.twig', array('message' => $message));
+});

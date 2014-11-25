@@ -14,3 +14,11 @@ body {
 .articleTitle:hover, .articleTitle:focus {
     text-decoration: none;
 }
+#errorPanel {
+    padding-top: 50px;
+    padding-bottom: 10px;
+}
+.adminTable {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
