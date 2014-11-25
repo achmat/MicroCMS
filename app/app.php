@@ -46,3 +46,14 @@ $app['dao.comment'] = $app->share(function ($app) {
     return $commentDAO;
 });
 
+$app->register(new Silex\Provider\MonologServiceProvider(), array(
+    'monolog.logfile' => $app['monolog.logfile'],
+    'monolog.name' => 'MicroCMS',
+    'monolog.level' => $app['monolog.level']
+));
+$app->register(new Silex\Provider\ServiceControllerServiceProvider());
+if (isset($app['debug']) and $app['debug']) {
+    $app->register(new Silex\Provider\WebProfilerServiceProvider(), array(
+        'profiler.cache_dir' => __DIR__.'/../var/cache/profiler'
+    ));
+}
