@@ -76,7 +76,6 @@ class UserDAO extends DAO implements UserProviderInterface
         $user->setRole($row['usr_role']);
         return $user;
     }
-}
 /**
  * Returns a list of all users, sorted by role and name.
  *
@@ -93,4 +92,5 @@ public function findAll() {
         $entities[$id] = $this->buildDomainObject($row);
     }
     return $entities;
+}
 }

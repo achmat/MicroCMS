@@ -5,6 +5,7 @@ use MicroCMS\Domain\Comment;
 use MicroCMS\Domain\Article;
 use MicroCMS\Domain\User;
 use MicroCMS\Form\Type\CommentType;
+use MicroCMS\Form\Type\ArticleType;
 
 // Home page
 $app->get('/', function () use ($app) {
@@ -53,4 +54,41 @@ $app->get('/admin', function() use ($app) {
         'articles' => $articles,
         'comments' => $comments,
         'users' => $users));
+});
+// Add a new article
+$app->match('/admin/article/add', function(Request $request) use ($app) {
+    $article = new Article();
+    $articleForm = $app['form.factory']->create(new ArticleType(), $article);
+    $articleForm->handleRequest($request);
+    if ($articleForm->isValid()) {
+        $app['dao.article']->save($article);
+        $app['session']->getFlashBag()->add('success', 'The article was successfully created.');
+    }
+    return $app['twig']->render('article_form.html.twig', array(
+        'title' => 'New article',
+        'articleForm' => $articleForm->createView()));
+});
+
+// Edit an existing article
+$app->match('/admin/article/{id}/edit', function($id, Request $request) use ($app) {
+    $article = $app['dao.article']->find($id);
+    $articleForm = $app['form.factory']->create(new ArticleType(), $article);
+    $articleForm->handleRequest($request);
+    if ($articleForm->isValid()) {
+        $app['dao.article']->save($article);
+        $app['session']->getFlashBag()->add('success', 'The article was succesfully updated.');
+    }
+    return $app['twig']->render('article_form.html.twig', array(
+        'title' => 'Edit article',
+        'articleForm' => $articleForm->createView()));
+});
+
+// Remove an article
+$app->get('/admin/article/{id}/delete', function($id, Request $request) use ($app) {
+    // Delete all associated comments
+    $app['dao.comment']->deleteAllByArticle($id);
+    // Delete the article
+    $app['dao.article']->delete($id);
+    $app['session']->getFlashBag()->add('success', 'The article was succesfully removed.');
+    return $app->redirect('/admin');
 });
